@@ -78,9 +78,10 @@ NRF52Pin *const pin_obj[] = {
     &uBit.io.irq1,
 };
 
-static Button *const button_obj[] = {
+static AbstractButton *const button_obj[] = {
     &uBit.buttonA,
     &uBit.buttonB,
+    &uBit.buttonAB,
 };
 
 static const PullMode pin_pull_mode_mapping[] = {
@@ -91,7 +92,7 @@ static const PullMode pin_pull_mode_mapping[] = {
 
 static uint8_t pin_pull_state[32 + 6];
 static uint16_t touch_state[4];
-static uint16_t button_state[2];
+static uint16_t button_state[HAL_ARRAY_SIZE(button_obj)];
 
 extern "C" {
 
@@ -121,13 +122,17 @@ void microbit_hal_power_clear_wake_sources(void) {
     for (size_t i = 0; i < HAL_ARRAY_SIZE(pin_obj); ++i) {
         microbit_hal_power_wake_on_pin(i, false);
     }
-    for (size_t i = 0; i < HAL_ARRAY_SIZE(button_obj); ++i) {
-        microbit_hal_power_wake_on_button(i, false);
-    }
+    microbit_hal_power_wake_on_button(MICROBIT_HAL_BUTTON_A, false);
+    microbit_hal_power_wake_on_button(MICROBIT_HAL_BUTTON_B, false);
 }
 
 void microbit_hal_power_wake_on_button(int button, bool wake_on_active) {
-    button_obj[button]->wakeOnActive(wake_on_active);
+    // Only the physical buttons can be wake sources, not the A+B combination.
+    if (button == MICROBIT_HAL_BUTTON_A) {
+        uBit.buttonA.wakeOnActive(wake_on_active);
+    } else if (button == MICROBIT_HAL_BUTTON_B) {
+        uBit.buttonB.wakeOnActive(wake_on_active);
+    }
 }
 
 void microbit_hal_power_wake_on_pin(int pin, bool wake_on_active) {
@@ -325,7 +330,7 @@ int microbit_hal_spi_transfer(size_t len, const uint8_t *src, uint8_t *dest) {
 }
 
 int microbit_hal_button_state(int button, int *was_pressed, int *num_presses) {
-    Button *b = button_obj[button];
+    AbstractButton *b = button_obj[button];
     if (was_pressed != NULL || num_presses != NULL) {
         uint16_t state = button_state[button];
         int p = b->wasPressed();
