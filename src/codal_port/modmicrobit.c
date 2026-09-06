@@ -173,6 +173,7 @@ static const mp_rom_map_elem_t microbit_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_display), MP_ROM_PTR(&microbit_display_obj) },
     { MP_ROM_QSTR(MP_QSTR_button_a), (mp_obj_t)&microbit_button_a_obj },
     { MP_ROM_QSTR(MP_QSTR_button_b), (mp_obj_t)&microbit_button_b_obj },
+    { MP_ROM_QSTR(MP_QSTR_button_ab), (mp_obj_t)&microbit_button_ab_obj },
     { MP_ROM_QSTR(MP_QSTR_accelerometer), MP_ROM_PTR(&microbit_accelerometer_obj) },
     { MP_ROM_QSTR(MP_QSTR_compass), MP_ROM_PTR(&microbit_compass_obj) },
     { MP_ROM_QSTR(MP_QSTR_speaker), MP_ROM_PTR(&microbit_speaker_obj) },
@@ -192,6 +193,7 @@ static const mp_rom_map_elem_t microbit_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_ws2812_write), MP_ROM_PTR(&microbit_ws2812_write_obj) },
 
     { MP_ROM_QSTR(MP_QSTR_run_every), MP_ROM_PTR(&microbit_run_every_obj) },
+    { MP_ROM_QSTR(MP_QSTR_press_button), MP_ROM_PTR(&microbit_press_button_obj) },
     { MP_ROM_QSTR(MP_QSTR_scale), MP_ROM_PTR(&microbit_scale_obj) },
 
     { MP_ROM_QSTR(MP_QSTR_pin0), MP_ROM_PTR(&microbit_p0_obj) },
