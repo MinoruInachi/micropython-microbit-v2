@@ -87,7 +87,8 @@ extern "C" {
 #define MICROBIT_HAL_ACCELEROMETER_EVT_SHAKE        (11)
 #define MICROBIT_HAL_ACCELEROMETER_EVT_2G           (12)
 
-// Button ids, used by microbit_hal_button_state() and microbit_hal_button_callback().
+// Button ids, used by microbit_hal_button_state() (A and B only) and
+// microbit_hal_button_callback() (A, B, and A+B pressed together).
 #define MICROBIT_HAL_BUTTON_A                       (0)
 #define MICROBIT_HAL_BUTTON_B                       (1)
 #define MICROBIT_HAL_BUTTON_AB                      (2)
