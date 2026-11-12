@@ -84,13 +84,6 @@ const microbit_button_obj_t microbit_button_b_obj = {
     .button_id = MICROBIT_HAL_BUTTON_B,
 };
 
-// Virtual button that is pressed when A and B are pressed together.
-const microbit_button_obj_t microbit_button_ab_obj = {
-    .base = { &microbit_button_type },
-    .pin = NULL,
-    .button_id = MICROBIT_HAL_BUTTON_AB,
-};
-
 // This function assumes "button" is of type microbit_button_type.
 uint8_t microbit_obj_get_button_id(mp_obj_t button) {
     return ((microbit_button_obj_t *)MP_OBJ_TO_PTR(button))->button_id;
@@ -99,10 +92,10 @@ uint8_t microbit_obj_get_button_id(mp_obj_t button) {
 /******************************************************************************/
 // press_button decorator
 
-// Object returned by press_button(button).  Calling it with a function registers
+// Object returned by press_button(button, ...).  Calling it with a function registers
 // that function to be run whenever the button is pressed.  "Pressed" means pressed
-// and then released (a click), like MakeCode, so that button_ab can be distinguished
-// from button_a and button_b.
+// and then released (a click), like MakeCode, so that pressing A and B together can
+// be distinguished from pressing A or B on its own.
 typedef struct _microbit_press_button_obj_t {
     mp_obj_base_t base;
     uint8_t button_id;
@@ -157,7 +150,7 @@ static MP_DEFINE_CONST_OBJ_TYPE(
     call, microbit_press_button_obj_call
     );
 
-// press_button(button, callback=None)
+// press_button(button, [button2,] callback=None)
 //
 // Used as a decorator:
 //
@@ -165,33 +158,59 @@ static MP_DEFINE_CONST_OBJ_TYPE(
 //     def on_a():
 //         display.show(Image.HEART)
 //
-// or as a function: press_button(button_a, on_a).  Use button_ab for A and B
-// pressed together.  Only one handler per button; registering again replaces
-// the previous one.
+// or as a function: press_button(button_a, on_a).  Pass both buttons, in either
+// order, for A and B pressed together: @press_button(button_a, button_b).  Only one
+// handler per button (or combination); registering again replaces the previous one.
 static mp_obj_t microbit_press_button(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
-    enum { ARG_button, ARG_callback };
+    enum { ARG_callback };
     static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_button, MP_ARG_REQUIRED | MP_ARG_OBJ },
-        { MP_QSTR_callback, MP_ARG_OBJ, {.u_rom_obj = MP_ROM_NONE} },
+        { MP_QSTR_callback, MP_ARG_KW_ONLY | MP_ARG_OBJ, {.u_rom_obj = MP_ROM_NONE} },
     };
 
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
-    mp_arg_parse_all(n_args, pos_args, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+    mp_arg_parse_all(0, NULL, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+    mp_obj_t callback = args[ARG_callback].u_obj;
 
-    if (!mp_obj_is_type(args[ARG_button].u_obj, &microbit_button_type)) {
-        mp_raise_TypeError(MP_ERROR_TEXT("expecting a button"));
+    // The positional arguments are one or two buttons, optionally followed by the callback.
+    size_t n_buttons = n_args;
+    if (n_args > 1 && !mp_obj_is_type(pos_args[n_args - 1], &microbit_button_type)) {
+        if (callback != mp_const_none) {
+            mp_raise_TypeError(MP_ERROR_TEXT("callback given twice"));
+        }
+        callback = pos_args[n_args - 1];
+        n_buttons -= 1;
+    }
+    if (n_buttons > 2) {
+        mp_raise_TypeError(MP_ERROR_TEXT("too many buttons"));
+    }
+
+    // Work out which buttons were given, as a bitmask indexed by button id.
+    unsigned int mask = 0;
+    for (size_t i = 0; i < n_buttons; ++i) {
+        if (!mp_obj_is_type(pos_args[i], &microbit_button_type)) {
+            mp_raise_TypeError(MP_ERROR_TEXT("expecting a button"));
+        }
+        unsigned int bit = 1 << microbit_obj_get_button_id(pos_args[i]);
+        if (mask & bit) {
+            mp_raise_ValueError(MP_ERROR_TEXT("same button given twice"));
+        }
+        mask |= bit;
     }
 
     microbit_press_button_obj_t *self = mp_obj_malloc(microbit_press_button_obj_t, &microbit_press_button_type);
-    self->button_id = microbit_obj_get_button_id(args[ARG_button].u_obj);
+    if (n_buttons == 2) {
+        self->button_id = MICROBIT_HAL_BUTTON_AB;
+    } else {
+        self->button_id = microbit_obj_get_button_id(pos_args[0]);
+    }
     self->user_callback = MP_OBJ_NULL;
 
-    if (args[ARG_callback].u_obj == mp_const_none) {
+    if (callback == mp_const_none) {
         // Return decorator-compatible object.
         return MP_OBJ_FROM_PTR(self);
     } else {
         // Register the callback now.
-        return microbit_press_button_obj_call(MP_OBJ_FROM_PTR(self), 1, 0, &args[ARG_callback].u_obj);
+        return microbit_press_button_obj_call(MP_OBJ_FROM_PTR(self), 1, 0, &callback);
     }
 }
 MP_DEFINE_CONST_FUN_OBJ_KW(microbit_press_button_obj, 1, microbit_press_button);

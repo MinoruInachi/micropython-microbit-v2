@@ -78,11 +78,7 @@ static mp_obj_t power_deep_sleep(size_t n_args, const mp_obj_t *pos_args, mp_map
     for (size_t i = 0; i < len; ++i) {
         const mp_obj_type_t *type = mp_obj_get_type(items[i]);
         if (microbit_obj_type_is_button(type)) {
-            uint8_t button_id = microbit_obj_get_button_id(items[i]);
-            if (button_id == MICROBIT_HAL_BUTTON_AB) {
-                mp_raise_ValueError(MP_ERROR_TEXT("button_ab cannot be a wake source"));
-            }
-            microbit_hal_power_wake_on_button(button_id, true);
+            microbit_hal_power_wake_on_button(microbit_obj_get_button_id(items[i]), true);
         } else if (microbit_obj_type_is_pin(type)) {
             microbit_hal_power_wake_on_pin(microbit_obj_get_pin_name(items[i]), true);
         } else {

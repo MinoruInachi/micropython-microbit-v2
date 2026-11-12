@@ -194,7 +194,6 @@ extern const struct _microbit_speaker_obj_t microbit_speaker_obj;
 extern const struct _microbit_microphone_obj_t microbit_microphone_obj;
 extern const struct _microbit_button_obj_t microbit_button_a_obj;
 extern const struct _microbit_button_obj_t microbit_button_b_obj;
-extern const struct _microbit_button_obj_t microbit_button_ab_obj;
 
 static inline bool microbit_obj_type_is_button(const mp_obj_type_t *type) {
     return type == &microbit_button_type;
