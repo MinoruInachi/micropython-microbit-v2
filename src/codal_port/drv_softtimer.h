@@ -53,6 +53,5 @@ void microbit_soft_timer_handler(void);
 void microbit_soft_timer_insert(microbit_soft_timer_entry_t *entry, uint32_t initial_delta_ms);
 void microbit_soft_timer_set_pause(bool paused, bool run_callbacks);
 uint32_t microbit_soft_timer_get_ms_to_next_expiry(void);
-bool microbit_soft_timer_has_entries(void);
 
 #endif // MICROPY_INCLUDED_CODAL_PORT_DRV_SOFTTIMER_H

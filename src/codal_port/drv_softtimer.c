@@ -99,8 +99,4 @@ uint32_t microbit_soft_timer_get_ms_to_next_expiry(void) {
     return dt;
 }
 
-bool microbit_soft_timer_has_entries(void) {
-    return MP_STATE_PORT(soft_timer_heap) != NULL;
-}
-
 MP_REGISTER_ROOT_POINTER(struct _microbit_soft_timer_entry_t *soft_timer_heap);

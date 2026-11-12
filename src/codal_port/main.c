@@ -147,10 +147,11 @@ void microbit_pyexec_file(const char *filename) {
         microbit_outer_nlr_will_handle_soft_timer_exceptions = true;
         mp_call_function_0(module_fun);
 
-        // If the script registered background handlers (run_every, press_button) then
-        // keep running them after the script has finished, like MakeCode does.  Ctrl-C
-        // stops this, via KeyboardInterrupt raised from within mp_hal_delay_ms().
-        while (microbit_soft_timer_has_entries() || microbit_button_has_handlers()) {
+        // If the script registered press_button handlers then keep running them (and any
+        // run_every timers) after the script has finished, like MakeCode does.  Ctrl-C
+        // stops this, via KeyboardInterrupt raised from within mp_hal_delay_ms().  A script
+        // that only uses run_every still returns to the REPL straight away, as before.
+        while (microbit_button_has_handlers()) {
             mp_hal_delay_ms(100);
         }
 
